@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>龙猫 2.5-Preview vs 2.0 — 一次「无法验证的升级」 | 美团 LongCat 深度对比</title>
+<meta name="description" content="美团 LongCat-2.5-Preview（2026-09-25）与 LongCat-2.0（2026-06-30）的完整对比：原生多模态、Agent 工作面扩张、1.6T/48B/1M 规格、MIT 开源到闭源预览的倒退，以及一个没有基准表的发布。">
+<meta name="author" content="林白玉">
+<meta property="og:type" content="article">
+<meta property="og:title" content="龙猫 2.5-Preview vs 2.0 — 一次「无法验证的升级」">
+<meta property="og:description" content="规格完全持平，价格完全相同，能力多了原生多模态 —— 但没有基准表、没有权重、没有模型卡。这一页把美团 LongCat 两代之间真正变化的部分摊开。">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%2084%22%3E%3Crect%20width%3D%22100%22%20height%3D%2284%22%20rx%3D%2216%22%20fill%3D%22%230b0d10%22%2F%3E%3Cg%20transform%3D%22translate%28-1%2C-13%29%22%3E%3Cpath%20fill%3D%22%23f0b429%22%20d%3D%22M4.63%2082C3.31%2082%202.35%2080.74%202.7%2079.47L19.57%2018.29C20.29%2015.68%2023.35%2014.52%2025.62%2016.01L47.81%2030.56C49.14%2031.44%2050.86%2031.44%2052.19%2030.57L74.48%2016C76.75%2014.52%2079.81%2015.68%2080.53%2018.29L97.31%2079.47C97.66%2080.74%2096.7%2082%2095.38%2082L73.95%2082C77.85%2077.48%2080%2071.72%2080%2065.75V65.05C80%2059.22%2077.88%2053.58%2074.03%2049.19L71.28%2035.39C71.12%2034.58%2070.4%2034%2069.58%2034C69.2%2034%2068.84%2034.12%2068.54%2034.35L58.17%2042.12C57.43%2042.67%2056.48%2042.85%2055.59%2042.6C51.94%2041.55%2048.06%2041.55%2044.41%2042.6C43.52%2042.85%2042.57%2042.67%2041.83%2042.12L31.46%2034.34C31.16%2034.12%2030.8%2034%2030.43%2034C29.6%2034%2028.89%2034.59%2028.74%2035.4L26.07%2049.82C22.18%2053.78%2020%2059.11%2020%2064.6V65.98C20%2071.8%2022.08%2077.43%2025.87%2081.85L26%2082Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<style>
+/* ============================================================
+   设计令牌 — 冷灰数据底 + 龙猫琥珀金 单一强调色
+   ============================================================ */
+:root{
+  --bg:#0b0d10;
+  --bg-soft:#101318;
+  --panel:#14171d;
+  --panel-2:#191d25;
+  --panel-3:#1f242d;
+  --line:#242a33;
+  --line-2:#2f3742;
+  --text:#e9ecf1;
+  --text-2:#b6bfcc;
+  --dim:#8a94a3;
+  --dim-2:#5f6874;
+
+  --gold:#f0b429;
+  --gold-soft:#ffd166;
+  --gold-dim:rgba(240,180,41,.13);
+  --gold-line:rgba(240,180,41,.32);
+
+  --ok:#4ec98a;
+  --ok-dim:rgba(78,201,138,.12);
+  --warn:#f0883e;
+  --bad:#e8696f;
+  --bad-dim:rgba(232,105,111,.12);
+  --blue:#7aa2f7;
+
+  --mono:"JetBrains Mono","Cascadia Code","SF Mono",Consolas,"Liberation Mono",monospace;
+  --sans:"Inter","PingFang SC","HarmonyOS Sans SC","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",Georgia,serif;
+
+  --r-s:8px; --r-m:14px; --r-l:22px;
+  --shell:1180px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:88px;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.75;letter-spacing:.01em;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(900px 480px at 78% -8%, rgba(240,180,41,.075), transparent 62%),
+    radial-gradient(700px 420px at 8% 6%, rgba(122,162,247,.05), transparent 60%);
+}
+::selection{background:rgba(240,180,41,.28);color:#fff}
+a{color:inherit;text-decoration:none}
+
+/* 滚动条 */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:6px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#414b59}
+
+.wrap{width:min(var(--shell),calc(100% - 48px));margin:0 auto;position:relative;z-index:1}
+@media(max-width:720px){.wrap{width:calc(100% - 28px)}}
+
+/* ============================================================
+   导航
+   ============================================================ */
+.nav{
+  position:sticky;top:0;z-index:100;height:64px;
+  background:rgba(11,13,16,.82);backdrop-filter:blur(18px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.nav-in{height:100%;display:flex;align-items:center;gap:26px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14.5px;letter-spacing:.02em;white-space:nowrap}
+.brand .paw{width:24px;height:24px;flex:none}
+.nav-links{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{
+  font-size:13px;color:var(--dim);padding:7px 12px;border-radius:99px;white-space:nowrap;
+  transition:.2s;font-weight:500;
+}
+.nav-links a:hover{color:var(--text-2);background:var(--panel-2)}
+.nav-links a.on{color:var(--gold);background:var(--gold-dim)}
+@media(max-width:900px){.nav-links{display:none}}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{padding:64px 0 0;position:relative}
+.kicker{
+  display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--gold);
+  background:var(--gold-dim);border:1px solid var(--gold-line);
+  padding:6px 14px;border-radius:99px;margin-bottom:26px;
+}
+.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 var(--gold);animation:ping 2.4s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(240,180,41,.55)}70%{box-shadow:0 0 0 9px rgba(240,180,41,0)}100%{box-shadow:0 0 0 0 rgba(240,180,41,0)}}
+
+h1{
+  font-family:var(--serif);font-size:clamp(36px,6.4vw,68px);line-height:1.08;
+  letter-spacing:-.015em;font-weight:800;margin-bottom:26px;
+}
+h1 .v25{
+  background:linear-gradient(96deg,var(--gold-soft),var(--gold) 45%,#d1871a);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+h1 .strike{color:var(--dim-2);text-decoration:line-through;text-decoration-thickness:2px;position:relative}
+.lede{font-size:clamp(15.5px,1.9vw,18.5px);color:var(--text-2);max-width:790px;line-height:1.8}
+.lede b{color:var(--text);font-weight:650}
+.lede .hl{color:var(--gold);font-weight:600}
+
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.chip{
+  font-size:12.5px;color:var(--dim);background:var(--panel);border:1px solid var(--line);
+  padding:6px 13px;border-radius:99px;font-family:var(--mono);
+}
+.chip b{color:var(--text-2);font-weight:600}
+
+/* ---- 官方标记分层猫：glow / tail / torso / paws / head(官方路径) ---- */
+.cat-stage{position:absolute;right:-10px;top:104px;width:320px;pointer-events:none;z-index:0;opacity:.96}
+.cat-stage svg{width:100%;height:auto;overflow:visible}
+.cat-glow{transform-origin:130px 92px;animation:breathe 5.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+.cat-tail{transform-origin:178px 176px;animation:wag 4.6s ease-in-out infinite}
+@keyframes wag{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
+.cat-torso{transform-origin:130px 190px;animation:sway 6.4s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-2.5px) scaleY(1.014)}}
+.cat-head{transform-origin:130px 88px;animation:tilt 7.2s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(-2.4deg)}50%{transform:rotate(2.4deg)}}
+.cat-paw{animation:twitch 5.8s ease-in-out infinite}
+.cat-paw.r{animation-delay:1.1s}
+@keyframes twitch{0%,86%,100%{transform:translateY(0)}91%{transform:translateY(-3.5px)}96%{transform:translateY(0)}}
+@media(max-width:1080px){.cat-stage{display:none}}
+
+/* ============================================================
+   数字带
+   ============================================================ */
+.statband{
+  margin-top:52px;display:grid;grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden;background:var(--panel);
+}
+.stat{padding:26px 22px;border-right:1px solid var(--line);position:relative}
+.stat:last-child{border-right:0}
+.stat .num{font-family:var(--mono);font-size:clamp(24px,3.1vw,33px);font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.stat .num .u{font-size:.52em;color:var(--dim);margin-left:3px;font-weight:500}
+.stat .lb{font-size:12.5px;color:var(--dim);margin-top:9px;letter-spacing:.04em}
+.stat .delta{font-size:11.5px;font-family:var(--mono);margin-top:7px}
+.stat.accent .num{color:var(--gold)}
+.stat .up{color:var(--ok)} .stat .flat{color:var(--dim-2)} .stat .down{color:var(--bad)}
+@media(max-width:820px){
+  .statband{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:0}
+  .stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--line)}
+}
+
+/* ============================================================
+   通用区块
+   ============================================================ */
+section{padding:76px 0 0}
+.sec-head{margin-bottom:34px}
+.sec-idx{
+  font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.18em;
+  display:flex;align-items:center;gap:11px;margin-bottom:14px;
+}
+.sec-idx::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--gold-line),transparent)}
+h2{font-family:var(--serif);font-size:clamp(25px,3.4vw,36px);font-weight:800;letter-spacing:-.01em;line-height:1.25}
+.sec-head .sub{color:var(--dim);margin-top:12px;max-width:720px;font-size:15px}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-m);padding:26px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:880px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* ============================================================
+   诚信横幅
+   ============================================================ */
+.honesty{
+  border:1px solid rgba(240,136,62,.3);background:
+    linear-gradient(135deg,rgba(240,136,62,.09),rgba(232,105,111,.04));
+  border-radius:var(--r-m);padding:24px 26px;display:flex;gap:18px;align-items:flex-start;
+}
+.honesty .ico{font-size:22px;line-height:1;flex:none;margin-top:1px}
+.honesty h3{font-size:16px;font-weight:700;color:var(--warn);margin-bottom:8px}
+.honesty p{color:var(--text-2);font-size:14.5px}
+.honesty p b{color:var(--text)}
+
+/* ============================================================
+   时间线
+   ============================================================ */
+.tl{position:relative;padding-left:34px}
+.tl::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--line-2),var(--line),transparent)}
+.tl-item{position:relative;padding-bottom:30px}
+.tl-item::before{
+  content:"";position:absolute;left:-30px;top:6px;width:12px;height:12px;border-radius:50%;
+  background:var(--bg-soft);border:2px solid var(--line-2);
+}
+.tl-item.key::before{border-color:var(--gold);background:var(--gold);box-shadow:0 0 0 5px var(--gold-dim)}
+.tl-date{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.06em}
+.tl-item.key .tl-date{color:var(--gold)}
+.tl-h{font-size:16.5px;font-weight:680;margin:5px 0 7px}
+.tl-p{font-size:14px;color:var(--dim);line-height:1.7}
+.tl-gap{position:absolute;left:-30px;width:2px;background:repeating-linear-gradient(180deg,var(--line-2) 0 4px,transparent 4px 9px)}
+
+/* ============================================================
+   对比表
+   ============================================================ */
+.tablewrap{border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;background:var(--panel)}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:13px 18px;text-align:left;font-size:14px;border-bottom:1px solid var(--line);vertical-align:middle}
+thead th{
+  background:var(--panel-2);font-size:12.5px;color:var(--dim);font-weight:650;
+  letter-spacing:.06em;position:sticky;top:0;
+}
+thead th.c25{color:var(--gold)}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--panel-2)}
+td.lbl{color:var(--dim);font-weight:500;width:22%;white-space:nowrap}
+td.c20{color:var(--text-2);font-family:var(--mono);font-size:13.3px}
+td.c25{color:var(--text);font-family:var(--mono);font-size:13.3px}
+tr.hi td.c25{background:rgba(240,180,41,.045)}
+tr.brk td.c25{background:rgba(232,105,111,.05)}
+
+.tag{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--sans);
+  padding:3px 9px;border-radius:5px;font-weight:600;letter-spacing:.02em;white-space:nowrap;
+}
+.tag.v{color:var(--ok);background:var(--ok-dim);border:1px solid rgba(78,201,138,.26)}
+.tag.c{color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-line)}
+.tag.n{color:var(--dim);background:var(--panel-3);border:1px solid var(--line-2)}
+.tag.x{color:var(--bad);background:var(--bad-dim);border:1px solid rgba(232,105,111,.26)}
+
+/* ============================================================
+   能力雷达
+   ============================================================ */
+.radar-wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:26px;align-items:center}
+@media(max-width:900px){.radar-wrap{grid-template-columns:1fr}}
+.radar-legend{display:flex;flex-direction:column;gap:12px}
+.rl{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;background:var(--panel-2);border-radius:var(--r-s);border:1px solid var(--line)}
+.rl .bar{width:3px;border-radius:2px;flex:none;align-self:stretch}
+.rl.b1 .bar{background:var(--dim-2)}
+.rl.b2 .bar{background:var(--gold)}
+.rl h4{font-size:13.5px;font-weight:650;margin-bottom:3px}
+.rl p{font-size:12.5px;color:var(--dim);line-height:1.6}
+.estimate-note{
+  font-size:11.5px;color:var(--warn);background:var(--bad-dim);border:1px solid rgba(240,136,62,.24);
+  padding:9px 13px;border-radius:var(--r-s);margin-top:14px;line-height:1.6;
+}
+
+/* ============================================================
+   基准条形图
+   ============================================================ */
+.tabs{display:flex;gap:7px;margin-bottom:22px;flex-wrap:wrap}
+.tab{
+  font-size:13px;padding:8px 17px;border-radius:99px;background:var(--panel-2);
+  border:1px solid var(--line);color:var(--dim);cursor:pointer;transition:.2s;font-weight:550;
+}
+.tab:hover{color:var(--text-2);border-color:var(--line-2)}
+.tab.on{background:var(--gold-dim);border-color:var(--gold-line);color:var(--gold)}
+.tabpane{display:none} .tabpane.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.brow{margin-bottom:17px}
+.brow .bt{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:7px}
+.brow .bn{font-size:13.5px;color:var(--text-2);font-weight:550}
+.brow .bn small{color:var(--dim-2);font-family:var(--mono);font-size:11px;margin-left:6px}
+.brow .bv{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--text)}
+.track{height:9px;background:var(--panel-3);border-radius:99px;overflow:hidden;position:relative}
+.fill{height:100%;border-radius:99px;width:0;transition:width 1.1s cubic-bezier(.22,1,.36,1)}
+.fill.g{background:linear-gradient(90deg,#5c6673,#7d8896)}
+.fill.gold{background:linear-gradient(90deg,#c98f18,var(--gold-soft))}
+.fill.empty{
+  background:repeating-linear-gradient(45deg,#1c212a 0 7px,#222834 7px 14px);
+  border:1px dashed var(--line-2);
+}
+.empty-box{
+  border:1px dashed var(--line-2);border-radius:var(--r-m);padding:44px 26px;text-align:center;
+  background:repeating-linear-gradient(45deg,transparent 0 11px,rgba(255,255,255,.014) 11px 22px);
+}
+.empty-box .big{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--dim);margin-bottom:12px}
+.empty-box p{font-size:14px;color:var(--dim-2);max-width:560px;margin:0 auto;line-height:1.8}
+
+/* ============================================================
+   Agent 工作流模拟
+   ============================================================ */
+.sim{border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;background:var(--panel)}
+.sim-head{
+  display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--panel-2);
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--dim);
+}
+.dots{display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line-2);display:block}
+.dots i:first-child{background:#4b3a3d} .dots i:nth-child(2){background:#4b4433} .dots i:nth-child(3){background:#33443b}
+.sim-body{padding:24px}
+.sim-screen{
+  border:1px solid var(--line);border-radius:var(--r-s);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.014),transparent 42%),
+    var(--bg-soft);
+  padding:0;position:relative;overflow:hidden;
+  aspect-ratio:300/178;
+}
+/* 细网格底纹，暗示"屏幕" */
+.sim-screen::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:26px 26px;
+}
+.sim-scene{
+  position:absolute;left:50%;top:50%;width:78%;height:78%;
+  transform:translate(-50%,-50%) scale(.97);
+  display:block;opacity:0;
+  transition:opacity .34s ease,transform .44s cubic-bezier(.22,1,.36,1);
+}
+.sim-scene.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sim-screen.lit{border-color:var(--gold-line);box-shadow:inset 0 0 0 1px rgba(240,180,41,.14)}
+.sim-screen.locked{border-color:rgba(232,105,111,.3)}
+/* 2.0 读不到的那一层：红色斜纹遮罩 */
+.sim-screen.locked::before{
+  background-image:
+    repeating-linear-gradient(45deg,rgba(232,105,111,.045) 0 7px,transparent 7px 15px),
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:auto,26px 26px,26px 26px;opacity:1;
+}
+.sim-screen.partial{border-color:rgba(240,136,62,.34)}
+.sim-screen.partial::before{
+  background-image:
+    repeating-linear-gradient(45deg,rgba(240,136,62,.04) 0 7px,transparent 7px 15px),
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:auto,26px 26px,26px 26px;opacity:1;
+}
+.sim-screen.partial .sim-cap{color:var(--warn);border-color:rgba(240,136,62,.34)}
+.sim-screen.locked .sim-cap-r{color:var(--bad);border-color:rgba(232,105,111,.36);background:rgba(46,20,22,.8)}
+.sim-screen.partial .sim-cap-r{color:var(--warn);border-color:rgba(240,136,62,.32)}
+.sim-cap{
+  position:absolute;left:12px;top:11px;z-index:3;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim-2);background:rgba(11,13,16,.72);border:1px solid var(--line);
+  padding:3px 9px;border-radius:5px;backdrop-filter:blur(6px);
+}
+.sim-screen.lit .sim-cap{color:var(--gold);border-color:var(--gold-line)}
+.sim-cap-r{
+  position:absolute;right:12px;top:11px;z-index:3;
+  font-family:var(--mono);font-size:10.5px;color:var(--dim-2);
+  background:rgba(11,13,16,.72);border:1px solid var(--line);
+  padding:3px 9px;border-radius:5px;backdrop-filter:blur(6px);
+}
+.steps{display:flex;gap:8px;margin:20px 0;flex-wrap:wrap}
+.step{
+  flex:1;min-width:118px;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r-s);
+  background:var(--panel-2);cursor:pointer;transition:.22s;text-align:left;
+}
+.step:hover{border-color:var(--line-2);background:var(--panel-3)}
+.step.on{border-color:var(--gold);background:var(--gold-dim)}
+.step .sn{font-family:var(--mono);font-size:10.5px;color:var(--dim-2)}
+.step.on .sn{color:var(--gold)}
+.step .st{font-size:13px;font-weight:600;margin-top:3px;color:var(--text-2)}
+.step.on .st{color:var(--gold)}
+.step .sd{font-size:11.5px;color:var(--dim-2);margin-top:4px;line-height:1.5}
+.sim-out{
+  border-left:2px solid var(--gold);padding:12px 0 12px 15px;font-size:13.5px;
+  color:var(--text-2);line-height:1.75;min-height:66px;
+}
+.sim-out .k{color:var(--gold);font-family:var(--mono);font-size:11.5px;display:block;margin-bottom:5px;letter-spacing:.06em}
+.sim-out.idle{border-left-color:var(--line-2);color:var(--dim-2)}
+
+/* ============================================================
+   计算器
+   ============================================================ */
+.calc{display:grid;grid-template-columns:1fr 300px;gap:26px}
+@media(max-width:860px){.calc{grid-template-columns:1fr}}
+.slider-row{margin-bottom:26px}
+.slider-row .lbl2{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.slider-row .lbl2 span{font-size:13.5px;color:var(--text-2)}
+.slider-row .lbl2 b{font-family:var(--mono);font-size:15px;color:var(--gold)}
+input[type=range]{
+  width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--panel-3);
+  border-radius:99px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--gold);border:3px solid var(--bg);box-shadow:0 0 0 1px var(--gold-line);cursor:grab;
+}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--gold);border:3px solid var(--bg);cursor:grab}
+.calc-out{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-m);padding:22px}
+.co-row{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px dashed var(--line)}
+.co-row:last-child{border-bottom:0}
+.co-row .k{font-size:13px;color:var(--dim)}
+.co-row .v{font-family:var(--mono);font-size:16px;font-weight:700}
+.co-row.total{border-top:1px solid var(--line);border-bottom:0;margin-top:5px;padding-top:14px}
+.co-row.total .v{color:var(--gold);font-size:22px}
+.co-row .v.free{color:var(--ok)}
+.hint{font-size:12px;color:var(--dim-2);margin-top:14px;line-height:1.65}
+
+/* ============================================================
+   开源 / 闭源
+   ============================================================ */
+.vs{display:grid;grid-template-columns:1fr 56px 1fr;gap:0;align-items:stretch}
+@media(max-width:860px){.vs{grid-template-columns:1fr;gap:16px}.vs .vs-mid{display:none}}
+.vs-mid{display:flex;align-items:center;justify-content:center}
+.vs-mid span{
+  font-family:var(--mono);font-size:12px;color:var(--dim-2);border:1px solid var(--line);
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--bg-soft);
+}
+.vs-col{border:1px solid var(--line);border-radius:var(--r-m);padding:24px;background:var(--panel)}
+.vs-col.a{border-left:3px solid var(--dim-2)}
+.vs-col.b{border-left:3px solid var(--bad)}
+.vs-col .vt{font-size:15px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:9px}
+.vs-col .vd{font-size:12.5px;color:var(--dim);margin-bottom:18px}
+.vs-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px;color:var(--text-2);align-items:flex-start}
+.vs-item:last-child{border-bottom:0}
+.vs-item .m{font-family:var(--mono);font-weight:700;flex:none;width:15px;height:15px;margin-top:1px}
+.vs-item .m svg{width:100%;height:100%;display:block}
+.vs-item.y .m{color:var(--ok)} .vs-item.n .m{color:var(--bad)} .vs-item.q .m{color:var(--warn)}
+
+/* ============================================================
+   选型建议
+   ============================================================ */
+.advice{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.advice{grid-template-columns:1fr}}
+.adv{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-m);padding:22px;border-top:2px solid var(--gold)}
+.adv.wa{border-top-color:var(--warn)} .adv.gr{border-top-color:var(--ok)}
+.adv .who{font-size:12px;color:var(--dim);font-family:var(--mono);letter-spacing:.06em;margin-bottom:9px}
+.adv h4{font-size:16px;font-weight:700;margin-bottom:10px}
+.adv p{font-size:13.5px;color:var(--text-2);line-height:1.75}
+.adv .pick{
+  margin-top:14px;padding:11px 13px;background:var(--bg-soft);border:1px solid var(--line);
+  border-radius:var(--r-s);font-size:13px;color:var(--text);font-weight:600;
+  display:flex;align-items:center;gap:8px;
+}
+.adv .pick .bar{width:3px;align-self:stretch;border-radius:2px;background:var(--gold)}
+.adv.wa .pick .bar{background:var(--warn)} .adv.gr .pick .bar{background:var(--ok)}
+
+/* ============================================================
+   代码块
+   ============================================================ */
+.code{
+  background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--r-m);
+  overflow:hidden;position:relative;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 15px;border-bottom:1px solid var(--line);background:var(--panel-2);
+}
+.code-head .fn{font-family:var(--mono);font-size:11.5px;color:var(--dim);letter-spacing:.05em}
+.copy-btn{
+  font-family:var(--mono);font-size:11px;color:var(--dim);background:var(--panel-3);
+  border:1px solid var(--line-2);padding:4px 11px;border-radius:5px;cursor:pointer;transition:.2s;
+}
+.copy-btn:hover{color:var(--gold);border-color:var(--gold-line)}
+.copy-btn.done{color:var(--ok);border-color:rgba(78,201,138,.4)}
+.code pre{padding:18px;overflow-x:auto;font-family:var(--mono);font-size:12.6px;line-height:1.85;color:var(--text-2)}
+.code .k2{color:var(--blue)} .code .s2{color:#9ece6a} .code .c2{color:var(--dim-2);font-style:italic} .code .n2{color:var(--gold-soft)}
+
+/* ============================================================
+   来源 / 页脚
+   ============================================================ */
+.srcs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:800px){.srcs{grid-template-columns:1fr}}
+.src{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-s);padding:14px 17px;
+  font-size:13px;color:var(--text-2);transition:.2s;
+}
+.src:hover{border-color:var(--line-2);background:var(--panel-2)}
+.src .sd2{font-family:var(--mono);font-size:11px;color:var(--dim-2);margin-bottom:5px}
+.src .st2{color:var(--text);font-weight:600;font-size:13.5px}
+
+footer{
+  margin-top:80px;border-top:1px solid var(--line);padding:34px 0 60px;
+  font-size:12.5px;color:var(--dim-2);line-height:1.85;
+}
+footer b{color:var(--dim)}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   内联 SVG 图标（替代 emoji 占位符）
+   ============================================================ */
+.ico{display:inline-flex;align-items:center;justify-content:center;flex:none}
+.ico svg{width:1em;height:1em;display:block}
+.ico-20{font-size:20px}
+.ico-16{font-size:16px}
+.ico-13{font-size:13px}
+.i-warn{color:var(--warn)}
+.i-gold{color:var(--gold)}
+.i-ok{color:var(--ok)}
+.i-bad{color:var(--bad)}
+.i-dim{color:var(--dim)}
+.i-view{color:var(--bad)}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ NAV ══════════ -->
+<nav class="nav">
+  <div class="wrap nav-in">
+    <div class="brand">
+      <svg class="paw" viewBox="0 0 100 84" fill="none" aria-hidden="true">
+        <path fill="#f0b429" transform="translate(-1,-13)" d="M4.63 82C3.31 82 2.35 80.74 2.7 79.47L19.57 18.29C20.29 15.68 23.35 14.52 25.62 16.01L47.81 30.56C49.14 31.44 50.86 31.44 52.19 30.57L74.48 16C76.75 14.52 79.81 15.68 80.53 18.29L97.31 79.47C97.66 80.74 96.7 82 95.38 82L73.95 82C77.85 77.48 80 71.72 80 65.75V65.05C80 59.22 77.88 53.58 74.03 49.19L71.28 35.39C71.12 34.58 70.4 34 69.58 34C69.2 34 68.84 34.12 68.54 34.35L58.17 42.12C57.43 42.67 56.48 42.85 55.59 42.6C51.94 41.55 48.06 41.55 44.41 42.6C43.52 42.85 42.57 42.67 41.83 42.12L31.46 34.34C31.16 34.12 30.8 34 30.43 34C29.6 34 28.89 34.59 28.74 35.4L26.07 49.82C22.18 53.78 20 59.11 20 64.6V65.98C20 71.8 22.08 77.43 25.87 81.85L26 82Z"/>
+      </svg>
+      <span>龙猫 2.5 vs 2.0</span>
+    </div>
+    <div class="nav-links" id="navlinks">
+      <a href="#verdict">结论</a>
+      <a href="#timeline">时间线</a>
+      <a href="#spec">规格对照</a>
+      <a href="#radar">能力面</a>
+      <a href="#bench">基准</a>
+      <a href="#agent">Agent 演示</a>
+      <a href="#openness">开源断层</a>
+      <a href="#cost">成本</a>
+      <a href="#advice">选型</a>
+      <a href="#srcs">来源</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="wrap hero">
+  <div class="cat-stage" aria-hidden="true">
+    <svg viewBox="0 0 260 232" role="presentation">
+      <defs>
+        <radialGradient id="lcGlow" cx=".5" cy=".5" r=".5">
+          <stop offset="0" stop-color="#f0b429" stop-opacity=".20"/>
+          <stop offset="1" stop-color="#f0b429" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- L1 光晕 -->
+      <circle class="cat-glow" cx="130" cy="92" r="92" fill="url(#lcGlow)"/>
+
+      <!-- L2 尾巴 -->
+      <g class="cat-tail">
+        <path d="M178 176c27 5 45-14 43-38-2-21-23-29-39-21-13 6-16 22-6 30 7 6 18 4 22-3"
+              fill="none" stroke="#f0b429" stroke-width="10" stroke-linecap="round" opacity=".45"/>
+      </g>
+
+      <!-- L3 躯干 + 前爪 -->
+      <g class="cat-torso">
+        <path d="M92 140c-21 6-33 25-28 47 5 22 23 33 46 33h56c23 0 40-13 43-35 3-23-11-42-34-45z"
+              fill="#171b22" stroke="#343c47" stroke-width="2.2"/>
+        <ellipse cx="130" cy="188" rx="35" ry="23" fill="#1e232b"/>
+        <g class="cat-paw"><ellipse cx="91" cy="203" rx="15" ry="9" fill="#20262f" stroke="#343c47" stroke-width="1.8"/></g>
+        <g class="cat-paw r"><ellipse cx="169" cy="203" rx="15" ry="9" fill="#20262f" stroke="#343c47" stroke-width="1.8"/></g>
+      </g>
+
+      <!-- L4 头部 = 美团官方 LongCat 标记路径（原样引用，未作任何形变） -->
+      <g class="cat-head" transform="translate(72.92 32.91) scale(1.1415)">
+        <path fill="#f0b429" d="M4.63 82C3.31 82 2.35 80.74 2.7 79.47L19.57 18.29C20.29 15.68 23.35 14.52 25.62 16.01L47.81 30.56C49.14 31.44 50.86 31.44 52.19 30.57L74.48 16C76.75 14.52 79.81 15.68 80.53 18.29L97.31 79.47C97.66 80.74 96.7 82 95.38 82L73.95 82C77.85 77.48 80 71.72 80 65.75V65.05C80 59.22 77.88 53.58 74.03 49.19L71.28 35.39C71.12 34.58 70.4 34 69.58 34C69.2 34 68.84 34.12 68.54 34.35L58.17 42.12C57.43 42.67 56.48 42.85 55.59 42.6C51.94 41.55 48.06 41.55 44.41 42.6C43.52 42.85 42.57 42.67 41.83 42.12L31.46 34.34C31.16 34.12 30.8 34 30.43 34C29.6 34 28.89 34.59 28.74 35.4L26.07 49.82C22.18 53.78 20 59.11 20 64.6V65.98C20 71.8 22.08 77.43 25.87 81.85L26 82Z"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="kicker"><span class="dot"></span>Meituan · LongCat · 2026-09-25 发布</div>
+
+  <h1>龙猫 2.5-Preview<br>对上它自己的 <span class="strike">2.0</span><span class="v25"> —— 一次没人能验证的升级</span></h1>
+
+  <p class="lede">
+    三个月前，美团把 <b>1.6 万亿参数、MIT 协议开源、能自己下载权重</b>的 LongCat-2.0 摆在开发者面前。
+    9 月 25 日，LongCat-2.5-Preview 上线：<b>同一个 1.6T、同一个约 480 亿激活、同一个 100 万上下文</b>，
+    新增了<span class="hl">原生图像理解</span>和<span class="hl">从终端走向整个桌面</span>的 Agent 野心。
+    <br><br>
+    但同一份公告里，没有基准表，没有权重，没有模型卡 —— <b>能读的都写着「据称」，能被验证的都还没发生</b>。
+    这一页把两代之间真正变化的部分、能确证的部分，以及<strong style="color:var(--bad)">这次发布悄悄拿走的东西</strong>，全部摊开。
+  </p>
+
+  <div class="meta-row">
+    <span class="chip"><b>2.0</b> · 2026-06-30 · MIT 开源</span>
+    <span class="chip"><b>2.5-Preview</b> · 2026-09-25 · 闭源预览</span>
+    <span class="chip">发布至今 <b>3 天</b></span>
+    <span class="chip">厂商基准 <b>0 张</b></span>
+    <span class="chip">第三方评测 <b>0 家</b></span>
+  </div>
+
+  <div class="statband">
+    <div class="stat">
+      <div class="num"><span class="cnt" data-to="1.6" data-dec="1">0</span><span class="u">T</span></div>
+      <div class="lb">总参数量</div>
+      <div class="delta flat">— 完全持平</div>
+    </div>
+    <div class="stat">
+      <div class="num"><span class="cnt" data-to="48">0</span><span class="u">B 激活</span></div>
+      <div class="lb">单 token 激活</div>
+      <div class="delta flat">— 2.0 为动态 33–56B</div>
+    </div>
+    <div class="stat accent">
+      <div class="num"><span class="cnt" data-to="1048576">0</span></div>
+      <div class="lb">上下文窗口 (token)</div>
+      <div class="delta flat">1M — 容量持平</div>
+    </div>
+    <div class="stat accent">
+      <div class="num" style="color:var(--bad)">0</div>
+      <div class="lb">可复现的公开跑分</div>
+      <div class="delta down">2.0 有 9 项厂商自评 → 归零</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ══════════ 1. 结论先行 ══════════ -->
+<section id="verdict" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">01 — 结论先行</div>
+    <h2>先说结论：升级是真的，「无法验证」也是真的</h2>
+    <p class="sub">把舆论里混在一起的四种声音拆开 —— 每一种的可信度完全不同。</p>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:18px">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span class="tag v">✓ 可确证</span>
+        <span style="font-size:12px;color:var(--dim);font-family:var(--mono)">来自官方元数据 / changelog</span>
+      </div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b style="color:var(--text)">原生多模态并入基座</b> —— 2.0 时代图像/视频是独立开源仓库，2.5 把视觉直接接进主模型</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b style="color:var(--text)">API 双协议</b> —— 同时提供 OpenAI 与 Anthropic 兼容端点，Claude Code 等工具可直连</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b style="color:var(--text)">工作面从终端扩到桌面</b> —— 浏览器、表格、设计工具被写进定位说明</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b style="color:var(--text)">老用户一次性发放 500 万 token</b>，限时价与 2.0 促销价完全一致</span></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span class="tag c">◐ 厂商声称</span>
+        <span style="font-size:12px;color:var(--dim);font-family:var(--mono)">美团口径，无第三方复现</span>
+      </div>
+      <div class="vs-item q"><span class="m">?</span><span><b style="color:var(--text)">编码能力进一步提升</b> —— 措辞是「生成更稳、理解更细」，没有任何数字支撑</span></div>
+      <div class="vs-item q"><span class="m">?</span><span><b style="color:var(--text)">长程任务能力</b> —— 「长」是新词，但没有长上下文召回率、没有轨迹长度指标</span></div>
+      <div class="vs-item q"><span class="m">?</span><span><b style="color:var(--text)">参数量 1.6T / 48B</b> —— 来自站点元数据与媒体转述，非 API 文档，且与 2.0 完全同数，疑似沿用</span></div>
+      <div class="vs-item q"><span class="m">?</span><span><b style="color:var(--text)">限时价可改两次</b> —— 合同上写着，价格锚点随时会动</span></div>
+    </div>
+  </div>
+
+  <div class="honesty">
+    <span class="ico ico-20 i-warn" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 3.2 1.6 20.4h20.8L12 3.2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9.4v4.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor"/></svg>
+    </span>
+    <div>
+      <h3>这次发布最反常的地方，不是参数，是「什么都没有附带」</h3>
+      <p>
+        2.0 发布时带着 <b>9 项基准成绩、MIT 协议、HuggingFace 全量权重、INT8 分片、5 万张国产卡的训练记录</b>；
+        2.5-Preview 到今天（发布第 3 天）<b>没有模型卡、没有技术报告、没有基准表、没有权重、没有 GGUF、没有第三方评测</b>，
+        美团 HuggingFace 组织下也没有对应仓库。同期 GLM-5.2 有独立评测的上下文召回分数 78.33，Qwen3.8-Max 有 Artificial Analysis 的完整榜单快照。
+        <b>规格表和测试结果是两种不同的事实</b> —— 这一页在每一条数据上都标注了它属于哪一种。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 2. 时间线 ══════════ -->
+<section id="timeline" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">02 — 时间线</div>
+    <h2>从「匿名顶流」到「低调预览」：三个月里发生了什么</h2>
+    <p class="sub">LongCat 这条线的节奏本身就是信息 —— 它揭示了美团对这个模型的定位摇摆。</p>
+  </div>
+
+  <div class="grid-2" style="align-items:start">
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-date">2026-03</div>
+        <div class="tl-h">LongCat-Next 验证原生多模态</div>
+        <div class="tl-p">多模态先在小规模模型上跑通，三个月后才并入万亿参数基座 —— 2.5 的视觉能力不是临时起意。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2026-06-30</div>
+        <div class="tl-h">LongCat-2.0 正式发布并开源</div>
+        <div class="tl-p">1.6T MoE、48B 激活、1M 上下文、35 万亿 token 预训练全程跑在 5 万+ 张国产加速卡上，零英伟达依赖。MIT 协议，同日上 HF / GitHub / 自有平台。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">发布前 · 匿名期</div>
+        <div class="tl-h">以「Owl Alpha」身份统治 OpenRouter</div>
+        <div class="tl-p">未揭名前已跑出 <b style="color:var(--text-2)">10.1 万亿 token 月调用量</b>、日均 5590 亿 token、环比增长 242%，位列 OpenRouter 全球调用量前三，Hermes Agent 工作区第一。</div>
+      </div>
+      <div class="tl-item key">
+        <div class="tl-date">2026-07</div>
+        <div class="tl-h">开放国产卡推理代码 + 社区适配</div>
+        <div class="tl-p">摩尔线程基于 MTT S5000 + MUSA 栈完成全链路适配，SGLang 支持 PR 落地。2.0 的「能用」是靠生态一条条铺出来的。</div>
+      </div>
+    </div>
+
+    <div class="tl">
+      <div class="tl-item key">
+        <div class="tl-date">2026-09-25 · 3 天前</div>
+        <div class="tl-h">LongCat-2.5-Preview 上线 API 平台</div>
+        <div class="tl-p">changelog 原文只有一句：「Version: 2026-09-25 — LongCat-2.5-Preview Now Available」，附三条能力声明：图像理解、编码、兼容主流开发环境。网页端 <span style="font-family:var(--mono);color:var(--gold)">longcat.chat</span> 同步开放体验。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2026-09-25</div>
+        <div class="tl-h">社区的疑问集中在同一个点上</div>
+        <div class="tl-p">「一个 1.6 万亿参数的模型发布，怎么连一张跑分表都没有？」—— 观察者平台在 9 月 26 日的报道原话，同时承认无法找到权重与 GGUF。OpenCode 模型目录将其标记为 <span style="font-family:var(--mono);color:var(--bad)">closed-weight: false</span>。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">同期对照</div>
+        <div class="tl-h">DeepSeek V4 Pro 与 GLM-5.2 的做法</div>
+        <div class="tl-p">四个月前的 DeepSeek V4 Pro 带完整独立基准；6 月的 GLM-5.2 带价目表和独立评测的上下文召回分数。<b style="color:var(--text-2)">同级别的模型，只有 LongCat 什么都没给</b>。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3. 规格对照 ══════════ -->
+<section id="spec" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">03 — 规格对照</div>
+    <h2>16 行规格，把「变的」和「没变的」分开</h2>
+    <p class="sub">金色列是本次真正的新增与变化；灰色行是原封不动的部分 —— 这张表本身就是这轮发布最诚实的一句话。</p>
+  </div>
+
+  <div class="tablewrap">
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>LongCat-2.0 <span style="color:var(--dim-2);font-weight:400">· 2026-06-30</span></th>
+            <th class="c25">LongCat-2.5-Preview <span style="font-weight:400">· 2026-09-25</span></th>
+            <th style="text-align:right">性质</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="lbl">总参数量</td><td class="c20">1.6 T</td><td class="c25">约 1.6 T</td><td style="text-align:right"><span class="tag n">持平</span></td></tr>
+          <tr><td class="lbl">单 token 激活</td><td class="c20">~48B（动态 33–56B）</td><td class="c25">约 48B</td><td style="text-align:right"><span class="tag n">持平</span></td></tr>
+          <tr><td class="lbl">架构</td><td class="c20">MoE + LSA 稀疏注意力</td><td class="c25">MoE（延续）</td><td style="text-align:right"><span class="tag n">持平</span></td></tr>
+          <tr><td class="lbl">上下文窗口</td><td class="c20">1,000,000</td><td class="c25">1,048,576</td><td style="text-align:right"><span class="tag n">持平</span></td></tr>
+          <tr><td class="lbl">最大输出</td><td class="c20">128K</td><td class="c25">131,072</td><td style="text-align:right"><span class="tag n">持平</span></td></tr>
+
+          <tr class="hi"><td class="lbl">输入模态</td><td class="c20">text</td><td class="c25">text + <b style="color:var(--gold)">image</b></td><td style="text-align:right"><span class="tag c">新增</span></td></tr>
+          <tr class="hi"><td class="lbl">视觉能力</td><td class="c20">图像/视频为独立仓库</td><td class="c25">原生并入基座：跨模态问答 · 视觉摘要 · 复杂视觉推理</td><td style="text-align:right"><span class="tag c">新增</span></td></tr>
+          <tr class="hi"><td class="lbl">Agent 目标面</td><td class="c20">终端 · 代码库 · 仓库管理</td><td class="c25">终端 · 浏览器 · 桌面软件 · 表格 · 设计工具</td><td style="text-align:right"><span class="tag c">扩张</span></td></tr>
+          <tr class="hi"><td class="lbl">工具兼容</td><td class="c20">Claude Code · OpenClaw · Hermes</td><td class="c25">+ OpenCode · Kilo Code · Codex · CatPaw</td><td style="text-align:right"><span class="tag c">扩张</span></td></tr>
+          <tr class="hi"><td class="lbl">接口协议</td><td class="c20">OpenAI 兼容 / 自部署</td><td class="c25">OpenAI <b>+</b> Anthropic 双兼容端点</td><td style="text-align:right"><span class="tag c">新增</span></td></tr>
+          <tr class="hi"><td class="lbl">推理开关</td><td class="c20">—</td><td class="c25">内置 reasoning toggle</td><td style="text-align:right"><span class="tag c">新增</span></td></tr>
+
+          <tr class="brk"><td class="lbl">开放程度</td><td class="c20">MIT · HF/GitHub 全量权重</td><td class="c25"><b style="color:var(--bad)">无权重 · 无仓库 · closed-weight</b></td><td style="text-align:right"><span class="tag x">倒退</span></td></tr>
+          <tr class="brk"><td class="lbl">公开跑分</td><td class="c20">9 项厂商自评</td><td class="c25"><b style="color:var(--bad)">0 项</b></td><td style="text-align:right"><span class="tag x">倒退</span></td></tr>
+          <tr class="brk"><td class="lbl">模型卡 / 技术报告</td><td class="c20">有</td><td class="c25"><b style="color:var(--bad)">无</b></td><td style="text-align:right"><span class="tag x">倒退</span></td></tr>
+          <tr class="brk"><td class="lbl">第三方评测</td><td class="c20">待独立复现</td><td class="c25"><b style="color:var(--bad)">Artificial Analysis 无收录</b></td><td style="text-align:right"><span class="tag x">倒退</span></td></tr>
+          <tr class="brk"><td class="lbl">自部署 / 私有化</td><td class="c20">支持（SGLang / NPU / 国产卡）</td><td class="c25"><b style="color:var(--bad)">不支持</b></td><td style="text-align:right"><span class="tag x">倒退</span></td></tr>
+
+          <tr><td class="lbl">标准价（输入/缓存/输出）</td><td class="c20">$0.75 / $0.015 / $2.95</td><td class="c25">未公布标准价</td><td style="text-align:right"><span class="tag q">待定</span></td></tr>
+          <tr><td class="lbl">限时价（输入/缓存/输出）</td><td class="c20">$0.30 / $0.006 / $1.20</td><td class="c25">$0.30 / $0.006 / $1.20</td><td style="text-align:right"><span class="tag n">持平</span></td></tr>
+          <tr><td class="lbl">赠量</td><td class="c20">—</td><td class="c25">老用户一次性 500 万 token</td><td style="text-align:right"><span class="tag c">新增</span></td></tr>
+          <tr><td class="lbl">训练算力披露</td><td class="c20">5 万+ 国产 ASIC · 35T token</td><td class="c25">未披露</td><td style="text-align:right"><span class="tag n">未提</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:18px">
+    <div class="card" style="border-left:2px solid var(--gold)">
+      <div style="font-size:12px;color:var(--gold);font-family:var(--mono);letter-spacing:.06em;margin-bottom:9px">关键洞察 01</div>
+      <p style="font-size:14px;color:var(--text-2);line-height:1.75">价格没降。<b style="color:var(--text)">2.5 的限时价和 2.0 的限时价是同一组数字</b>，且合同上写着还能改两次 —— 这次升级的账，全押在「多模态和长程任务值这个价」上，而不是靠便宜取胜。</p>
+    </div>
+    <div class="card" style="border-left:2px solid var(--gold)">
+      <div style="font-size:12px;color:var(--gold);font-family:var(--mono);letter-spacing:.06em;margin-bottom:9px">关键洞察 02</div>
+      <p style="font-size:14px;color:var(--text-2);line-height:1.75">参数完全没动。三代之间 1.6T/48B 一直没变，说明这轮升级<b style="color:var(--text)">主要发生在后训练与数据侧</b>，而不是把模型做大 —— 这也解释了为什么它敢叫「Preview」。</p>
+    </div>
+    <div class="card" style="border-left:2px solid var(--bad)">
+      <div style="font-size:12px;color:var(--bad);font-family:var(--mono);letter-spacing:.06em;margin-bottom:9px">关键洞察 03</div>
+      <p style="font-size:14px;color:var(--text-2);line-height:1.75">最大的一处变化不在能力表里，在<b style="color:var(--text)">「怎么拿到」这一列</b>：从 MIT 全量权重，退回到一个不能自部署、不能验证、限时可改价的预览端点。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4. 能力雷达 ══════════ -->
+<section id="radar" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">04 — 能力面</div>
+    <h2>六个维度的定性对比</h2>
+    <p class="sub">
+      没有官方跑分就没有精确雷达 —— 所以这张图给的是<b style="color:var(--gold)">基于公开声明的推断区间</b>，
+      不是测量值。灰色代表 2.0 的已验证基线，金色代表 2.5 的声称上限。
+    </p>
+  </div>
+
+  <div class="radar-wrap">
+    <div class="card" style="padding:20px">
+      <svg viewBox="-46 0 512 400" style="width:100%;height:auto" id="radarChart" role="img" aria-label="两代模型六维能力雷达对比"></svg>
+    </div>
+    <div>
+      <div class="radar-legend">
+        <div class="rl b1"><div class="bar"></div><div>
+          <h4>LongCat-2.0 <span style="font-family:var(--mono);font-size:11px;color:var(--dim-2);font-weight:400">有 9 项厂商自评可佐证</span></h4>
+          <p>编码与长上下文是实测出来的强项（Terminal-Bench 70.8、SWE-bench Pro 59.5、1M 原生上下文）；视觉、多模态交叉能力不存在。</p>
+        </div></div>
+        <div class="rl b2"><div class="bar"></div><div>
+          <h4>LongCat-2.5-Preview <span style="font-family:var(--mono);font-size:11px;color:var(--gold);font-weight:400">仅有能力声明</span></h4>
+          <p>视觉维度从 0 拉到「声称可用」；Agent 面从终端扩到整个桌面；编码维持但无数字；<b style="color:var(--warn)">标注一个明显向下的维度：可验证性</b>。</p>
+        </div></div>
+      </div>
+      <div class="estimate-note">
+        <span class="ico ico-13 i-warn" style="vertical-align:-2px;margin-right:5px"><svg viewBox="0 0 24 24"><path d="M12 3.2 1.6 20.4h20.8L12 3.2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9.4v4.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor"/></svg></span>这不是基准测试结果。它是「公开声明强度」的映射：2.0 的分数来自美团公布的九项评测，2.5 的每一格都来自 changelog 里的一句话。
+        真实差距需要第三方实测才能确定，<b>本页无法提供</b>。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 5. 基准 ══════════ -->
+<section id="bench" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">05 — 基准数据</div>
+    <h2>有数据的看细节，没数据的看空白</h2>
+    <p class="sub">切到第三个标签 —— 那条斜纹填充的进度条，就是 2.5-Preview 现在全部的「公开跑分」。</p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-pane="p20">LongCat-2.0 · 厂商自评（9 项）</button>
+    <button class="tab" data-pane="ppeer">2.0 横向对比 · vs GPT-5.5 / Claude</button>
+    <button class="tab" data-pane="p25">2.5-Preview · 无数据</button>
+  </div>
+
+  <div class="tabpane on" id="p20">
+    <div class="grid-2" style="gap:34px 40px">
+      <div>
+        <h3 style="font-size:14px;color:var(--dim);font-weight:600;margin-bottom:18px;letter-spacing:.06em">编码 / Agent 任务</h3>
+        <div class="brow"><div class="bt"><span class="bn">Terminal-Bench 2.1 <small>终端操作</small></span><span class="bv">70.8</span></div><div class="track"><div class="fill gold" data-w="70.8"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">SWE-bench Pro <small>真实仓库修 bug</small></span><span class="bv">59.5</span></div><div class="track"><div class="fill gold" data-w="59.5"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">SWE-bench Multilingual</span><span class="bv">77.3</span></div><div class="track"><div class="fill gold" data-w="77.3"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">FORTE <small>长流程任务编排</small></span><span class="bv">73.2</span></div><div class="track"><div class="fill gold" data-w="73.2"></div></div></div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;color:var(--dim);font-weight:600;margin-bottom:18px;letter-spacing:.06em">推理 / 检索 / 指令</h3>
+        <div class="brow"><div class="bt"><span class="bn">GPQA Diamond <small>研究生级科学题</small></span><span class="bv">88.9</span></div><div class="track"><div class="fill gold" data-w="88.9"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">IMO-AnswerBench</span><span class="bv">81.8</span></div><div class="track"><div class="fill gold" data-w="81.8"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">BrowseComp <small>代理式浏览检索</small></span><span class="bv">79.9</span></div><div class="track"><div class="fill gold" data-w="79.9"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">RWSearch</span><span class="bv">78.8</span></div><div class="track"><div class="fill gold" data-w="78.8"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">IFEval <small>指令遵循</small></span><span class="bv">90.0</span></div><div class="track"><div class="fill gold" data-w="90.0"></div></div></div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--dim-2);margin-top:22px;line-height:1.7">
+      全部为美团自评，截至目前未见独立复现。<b style="color:var(--dim)">SWE-bench Pro 上 59.5 对 GPT-5.5 的 58.6，0.9 分的差距在评测噪声范围内</b> —— 说「略微领先」是准确表述，说「碾压」不是。
+    </p>
+  </div>
+
+  <div class="tabpane" id="ppeer">
+    <div class="grid-2" style="gap:34px 40px">
+      <div>
+        <h3 style="font-size:14px;color:var(--dim);font-weight:600;margin-bottom:18px;letter-spacing:.06em">编码</h3>
+        <div class="brow"><div class="bt"><span class="bn">SWE-bench Pro <small>2.0</small></span><span class="bv">59.5</span></div><div class="track"><div class="fill gold" data-w="99.2"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">Claude Opus 4.7</span><span class="bv">64.3</span></div><div class="track"><div class="fill g" data-w="100"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">GPT-5.5</span><span class="bv">58.6</span></div><div class="track"><div class="fill g" data-w="97.7"></div></div></div>
+        <div style="height:22px"></div>
+        <div class="brow"><div class="bt"><span class="bn">Terminal-Bench 2.1 <small>2.0</small></span><span class="bv">70.8</span></div><div class="track"><div class="fill gold" data-w="95.8"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">GPT-5.5</span><span class="bv">73.8</span></div><div class="track"><div class="fill g" data-w="100"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">Claude Opus 4.7</span><span class="bv">71.7</span></div><div class="track"><div class="fill g" data-w="97.2"></div></div></div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;color:var(--dim);font-weight:600;margin-bottom:18px;letter-spacing:.06em">通用 Agent / 长流程</h3>
+        <div class="brow"><div class="bt"><span class="bn">FORTE <small>2.0</small></span><span class="bv">73.2</span></div><div class="track"><div class="fill gold" data-w="94.1"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">GPT-5.5</span><span class="bv">77.8</span></div><div class="track"><div class="fill g" data-w="100"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">Claude Opus 4.7</span><span class="bv">77.6</span></div><div class="track"><div class="fill g" data-w="99.7"></div></div></div>
+        <div style="height:22px"></div>
+        <div class="brow"><div class="bt"><span class="bn">BrowseComp <small>2.0</small></span><span class="bv">79.9</span></div><div class="track"><div class="fill gold" data-w="94.7"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">GPT-5.5</span><span class="bv">84.4</span></div><div class="track"><div class="fill g" data-w="100"></div></div></div>
+        <div class="brow"><div class="bt"><span class="bn">Claude Opus 4.7</span><span class="bv">79.3</span></div><div class="track"><div class="fill g" data-w="94.0"></div></div></div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--dim-2);margin-top:22px;line-height:1.7">
+      读法：2.0 的甜点区是<b style="color:var(--dim)">「代码写得比通用智能体任务更好」</b> —— SWE-bench Pro 反超 GPT-5.5，FORTE 却落后 4.6 分。厂商自己也承认：仅看测试集评价体系较为单一，且各家 Benchmark 版本存在差异。
+    </p>
+  </div>
+
+  <div class="tabpane" id="p25">
+    <div class="empty-box">
+      <div class="big">这里本该有 9 根进度条</div>
+      <p>
+        LongCat-2.5-Preview 发布至今<b style="color:var(--text-2)">没有公开任何基准成绩</b> —— 没有厂商榜单，没有 Artificial Analysis 收录，没有独立评测机构测过。
+        唯一可比的是同价位竞品的公开数据：
+      </p>
+    </div>
+    <div class="grid-3" style="margin-top:22px">
+      <div class="card">
+        <div style="font-size:11.5px;color:var(--dim-2);font-family:var(--mono);letter-spacing:.06em;margin-bottom:8px">对比对象</div>
+        <h4 style="font-size:15px;margin-bottom:7px">GLM-5.2</h4>
+        <p style="font-size:13.5px;color:var(--dim);line-height:1.7">同为 1M 上下文，但有 <b style="color:var(--ok)">78.33 的独立上下文召回分数</b>、公开价目表、厂商 + 第三方两套来源。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:11.5px;color:var(--dim-2);font-family:var(--mono);letter-spacing:.06em;margin-bottom:8px">对比对象</div>
+        <h4 style="font-size:15px;margin-bottom:7px">Qwen3.8-Max</h4>
+        <p style="font-size:13.5px;color:var(--dim);line-height:1.7">AA 智能指数 <b style="color:var(--ok)">45.4</b>（145 款中第 15）、编码指数 <b style="color:var(--ok)">76.2</b>（138 款中第 9），且有可按名锁定的日期快照。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:11.5px;color:var(--dim-2);font-family:var(--mono);letter-spacing:.06em;margin-bottom:8px">对比对象</div>
+        <h4 style="font-size:15px;margin-bottom:7px">DeepSeek V4 Pro</h4>
+        <p style="font-size:13.5px;color:var(--dim);line-height:1.7">四个月前发布即带完整独立基准：AA 编码指数 68.8、GPQA 92.8%、HLE 41%、τ²-Bench 96.2%。<b style="color:var(--text-2)">LongCat 连参数表都还没随附。</b></p>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--dim-2);margin-top:20px;line-height:1.7">
+      <span class="ico ico-13 i-warn" style="vertical-align:-2px;margin-right:5px"><svg viewBox="0 0 24 24"><path d="M12 3.2 1.6 20.4h20.8L12 3.2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9.4v4.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor"/></svg></span>客观提醒：<b style="color:var(--dim)">没有基准 ≠ 模型不好</b>。Preview 阶段不发榜单是常见做法，也可能是灰度期的正常节奏。问题在于这次连价格锚点都是限时可改的 —— 在没有任何可复现证据的情况下，它更像一次<b style="color:var(--dim)">需求探测</b>，而不是一次能力发布。
+    </p>
+  </div>
+</section>
+
+<!-- ══════════ 6. Agent 演示 ══════════ -->
+<section id="agent" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">06 — 差异演示</div>
+    <h2>「能看图」到底改变了什么？点一下</h2>
+    <p class="sub">
+      2.5 这次最实的一条能力是原生图像理解。把它放进一条典型的桌面 Agent 链路里，差别不是「快了 10%」，而是<b style="color:var(--gold)">某几步从根本做不到</b>。
+      点四个步骤看差别。
+    </p>
+  </div>
+
+  <div class="sim">
+    <div class="sim-head">
+      <div class="dots"><i></i><i></i><i></i></div>
+      <span>agent_run / 长程桌面任务 · 4 步</span>
+    </div>
+    <div class="sim-body">
+      <div class="sim-screen" id="simscreen">
+        <span class="sim-cap" id="simcap">ticket.read</span>
+        <span class="sim-cap-r" id="simcapr">text only</span>
+        <svg class="sim-scene on" data-scene="0" viewBox="0 0 300 186" preserveAspectRatio="xMidYMid meet" role="img" aria-label="工单文本界面线稿">
+          <g fill="none" stroke="#8a94a3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="60" y="26" width="180" height="134" rx="8"/>
+            <rect x="74" y="42" width="152" height="16" rx="3"/>
+            <rect x="74" y="68" width="120" height="7" rx="3"/>
+            <rect x="74" y="82" width="132" height="7" rx="3"/>
+            <path d="M74 124l9 9 17-19" stroke="#f0b429" stroke-width="1.8"/>
+            <rect x="112" y="116" width="80" height="7" rx="3"/>
+            <rect x="74" y="144" width="60" height="7" rx="3"/>
+          </g>
+        </svg>
+        <svg class="sim-scene" data-scene="1" viewBox="0 0 300 186" preserveAspectRatio="xMidYMid meet" role="img" aria-label="浏览器报错弹窗线稿">
+          <g fill="none" stroke="#8a94a3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="50" y="30" width="200" height="126" rx="8"/>
+            <path d="M50 52h200"/>
+            <circle cx="64" cy="41" r="3.2" fill="#8a94a3" stroke="none"/>
+            <circle cx="76" cy="41" r="3.2" fill="#8a94a3" fill-opacity=".6" stroke="none"/>
+            <circle cx="88" cy="41" r="3.2" fill="#8a94a3" fill-opacity=".35" stroke="none"/>
+            <rect x="102" y="35" width="120" height="12" rx="6"/>
+            <rect x="66" y="66" width="80" height="7" rx="3"/>
+            <rect x="66" y="80" width="56" height="7" rx="3"/>
+            <rect x="112" y="98" width="122" height="44" rx="6" fill="#e8696f" fill-opacity=".1" stroke="#e8696f" stroke-width="1.7"/>
+            <path d="M126 112l12 12M138 112l-12 12" stroke="#e8696f" stroke-width="2"/>
+            <rect x="152" y="112" width="66" height="6" rx="3" stroke="#e8696f" stroke-width="1.5"/>
+            <rect x="152" y="126" width="44" height="6" rx="3" stroke="#e8696f" stroke-width="1.5" stroke-opacity=".7"/>
+          </g>
+        </svg>
+        <svg class="sim-scene" data-scene="2" viewBox="0 0 300 186" preserveAspectRatio="xMidYMid meet" role="img" aria-label="对账表格线稿">
+          <g fill="none" stroke="#8a94a3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="52" y="32" width="196" height="122" rx="8"/>
+            <path d="M52 78h196M52 100h196M52 122h196"/>
+            <path d="M100 32v122M148 32v122M200 32v122"/>
+            <rect x="106" y="40" width="38" height="7" rx="3"/>
+            <rect x="154" y="40" width="42" height="7" rx="3"/>
+            <rect x="60" y="64" width="30" height="6" rx="3"/>
+            <rect x="108" y="86" width="32" height="6" rx="3"/>
+            <rect x="156" y="108" width="36" height="6" rx="3"/>
+            <path d="M62 134l8 8 15-17" stroke="#f0b429" stroke-width="1.8"/>
+            <rect x="94" y="131" width="44" height="6" rx="3"/>
+          </g>
+          <path d="M52 56h196" fill="none" stroke="#8a94a3" stroke-width="1.6"/>
+          <path d="M52 32h196v24H52z" fill="#1b1f26" fill-opacity=".85" stroke="none"/>
+          <path d="M52 56h196" fill="none" stroke="#8a94a3" stroke-width="1.6"/>
+        </svg>
+        <svg class="sim-scene" data-scene="3" viewBox="0 0 300 186" preserveAspectRatio="xMidYMid meet" role="img" aria-label="设计稿与标注线稿">
+          <g fill="none" stroke="#8a94a3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="54" y="28" width="192" height="130" rx="8"/>
+            <rect x="70" y="44" width="70" height="48" rx="5"/>
+            <path d="M70 84l20-19 14 13 12-10 24 24" stroke="#f0b429" stroke-width="1.8"/>
+            <circle cx="88" cy="59" r="5" stroke="#f0b429" stroke-width="1.8"/>
+            <rect x="154" y="44" width="76" height="7" rx="3"/>
+            <rect x="154" y="60" width="58" height="7" rx="3"/>
+            <rect x="154" y="76" width="68" height="7" rx="3"/>
+            <rect x="70" y="108" width="72" height="7" rx="3"/>
+            <rect x="70" y="124" width="48" height="7" rx="3"/>
+            <rect x="154" y="106" width="34" height="34" rx="5" fill="#f0b429" fill-opacity=".08" stroke="#f0b429" stroke-width="1.6" stroke-dasharray="4 3"/>
+            <path d="M188 123l14 14M202 123l-14 14" stroke="#f0b429" stroke-width="1.8"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="steps" id="simsteps">
+        <button class="step on" data-i="0">
+          <div class="sn">STEP 01</div>
+          <div class="st">读任务</div>
+          <div class="sd">从工单里读需求，纯文本</div>
+        </button>
+        <button class="step" data-i="1">
+          <div class="sn">STEP 02</div>
+          <div class="st">看报错截图</div>
+          <div class="sd">读后台的红色报错截图</div>
+        </button>
+        <button class="step" data-i="2">
+          <div class="sn">STEP 03</div>
+          <div class="st">核对表格</div>
+          <div class="sd">对照 Excel 里的对账数据</div>
+        </button>
+        <button class="step" data-i="3">
+          <div class="sn">STEP 04</div>
+          <div class="st">看设计稿</div>
+          <div class="sd">照设计稿改前端样式</div>
+        </button>
+      </div>
+
+      <div class="sim-out idle" id="simout">
+        <span class="k">点击任一步骤查看两代差异</span>
+        这条链路演示的是「读屏能力」对长程 Agent 的解锁作用 —— 灰底斜纹区代表 2.0 的能力边界。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 7. 开源断层 ══════════ -->
+<section id="openness" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">07 — 最容易被忽略的一栏</div>
+    <h2>从 MIT 全量权重，退回一个不能验证的端点</h2>
+    <p class="sub">这一栏不在多数对比文章里，但对企业采购和数据合规来说，它比参数表重要得多。</p>
+  </div>
+
+  <div class="vs">
+    <div class="vs-col a">
+      <div class="vt"><span class="tag v">MIT 开源</span> LongCat-2.0</div>
+      <div class="vd">2026-06-30 · HF + GitHub + 自有平台</div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>MIT 协议，可商用、可修改、可闭源集成衍生作品</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>HuggingFace 全量权重：BF16 / F32 + FP8 量化 + 141 分片 INT8</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>自部署：16× H20 即可跑 1M 上下文，SGLang / NPU 双栈</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>国产卡推理代码开放，摩尔线程等完成适配</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>数据不出域，可满足私有化与地缘合规要求</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>9 项基准公开，至少可被社区证伪</span></div>
+    </div>
+
+    <div class="vs-mid"><span>VS</span></div>
+
+    <div class="vs-col b">
+      <div class="vt"><span class="tag x">闭源预览</span> LongCat-2.5-Preview</div>
+      <div class="vd">2026-09-25 · 仅 API + longcat.chat</div>
+      <div class="vs-item n"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span>无权重、无 GGUF，美团 HF 组织下无对应仓库</span></div>
+      <div class="vs-item n"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span>不能自部署，不能私有化，数据须出境到厂商</span></div>
+      <div class="vs-item n"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span>无模型卡、无技术报告、无参数表由厂商直接公布</span></div>
+      <div class="vs-item n"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span>无基准 → 能力不可被社区证伪</span></div>
+      <div class="vs-item q"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><path d="M5 12h4.2l2.4-4.4 3 8.8 2.3-4.4H19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>限时价可按合同变更两次，且未公布标准价</span></div>
+      <div class="vs-item y"><span class="m ico ico-13"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.8 12.2l2.9 2.9 5.5-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>补偿：老用户一次性 500 万免费 token</span></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px;border-left:2px solid var(--gold)">
+    <p style="font-size:14.5px;color:var(--text-2);line-height:1.85">
+      <b style="color:var(--text)">怎么理解这个断层？</b>　一种合理解读是：<b style="color:var(--text)">多模态基座还没准备好开源</b> ——
+      2.0 的开源动机里包含「证明国产卡能训万亿模型」这类叙事压力，而 2.5 的重点是抢 Agent 工作流入口，权重与评测可以后补。
+      另一种解读更直接：<b style="color:var(--text)">先收需求，再决定要不要放出来</b>。
+      无论是哪种，对开发者而言的事实是一样的 —— <b style="color:var(--text)">你现在无法验证它，也无法离开它</b>。
+      建议把它当 Preview 试用，不要把生产链路压在上面。
+    </p>
+  </div>
+</section>
+
+<!-- ══════════ 8. 成本 ══════════ -->
+<section id="cost" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">08 — 成本</div>
+    <h2>价格没变，但「够不够用」变了</h2>
+    <p class="sub">两代限时价完全一致，所以真正的变量是：视觉输入让 token 消耗结构变了，500 万赠量还剩多少。拖动滑块看看。</p>
+  </div>
+
+  <div class="calc">
+    <div class="card">
+      <div class="slider-row">
+        <div class="lbl2"><span>单次任务输入 token（含截图/文档）</span><b id="v1">40,000</b></div>
+        <input type="range" id="s1" min="10000" max="400000" step="5000" value="40000">
+      </div>
+      <div class="slider-row">
+        <div class="lbl2"><span>单次任务输出 token（Agent 轨迹）</span><b id="v2">6,000</b></div>
+        <input type="range" id="s2" min="1000" max="60000" step="500" value="6000">
+      </div>
+      <div class="slider-row" style="margin-bottom:0">
+        <div class="lbl2"><span>每月任务次数</span><b id="v3">2,000</b></div>
+        <input type="range" id="s3" min="100" max="20000" step="100" value="2000">
+      </div>
+      <p class="hint">
+        计费口径：未缓存输入 $0.30 / 缓存输入 $0.006 / 输出 $1.20 每百万 token（两代限时价相同）。
+        注意长程 Agent 的成本大头通常在输出侧 —— 一次工具调用循环的轨迹输出，可能是输入的三到五倍。
+      </p>
+    </div>
+
+    <div class="calc-out">
+      <div class="co-row"><span class="k">每月总输入 token</span><span class="v" id="o-in">—</span></div>
+      <div class="co-row"><span class="k">每月总输出 token</span><span class="v" id="o-out">—</span></div>
+      <div class="co-row"><span class="k">按未缓存计 · 月成本</span><span class="v" id="o-full">—</span></div>
+      <div class="co-row"><span class="k">按 70% 缓存命中 · 月成本</span><span class="v" id="o-cache">—</span></div>
+      <div class="co-row"><span class="k">500 万赠量可覆盖</span><span class="v free" id="o-free">—</span></div>
+      <div class="co-row total"><span class="k">年化成本（缓存优化后）</span><span class="v" id="o-year">—</span></div>
+      <p class="hint">两代价格一致，<b style="color:var(--gold)">差异不在单价，在用量</b> —— 多模态让单次任务的输入与输出都变长，这是 2.5 真正的成本变化。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 9. 选型 ══════════ -->
+<section id="advice" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">09 — 选型建议</div>
+    <h2>三种人，三个不同的答案</h2>
+    <p class="sub">同一款模型，对三类使用者的正确选择是完全相反的。</p>
+  </div>
+
+  <div class="advice">
+    <div class="adv">
+      <div class="who">FOR · 自部署 / 私有化</div>
+      <h4>继续用 2.0</h4>
+      <p>2.5 没有给你任何可下载的权重，也没有评测，你的选择其实只有两个：等，或者拿 2.0 的 MIT 权重自己去接多模态方案。2.0 的编码与长上下文能力是<b>已验证</b>的，且能跑在自己的国产卡上。</p>
+      <div class="pick"><div class="bar"></div>LongCat-2.0 · MIT · 自部署</div>
+    </div>
+    <div class="adv wa">
+      <div class="who">FOR · 想尝鲜 / 做 GUI Agent</div>
+      <h4>拿 500 万赠量去试</h4>
+      <p>如果你的场景真的需要「读截图 + 长程操作桌面」，2.5 是目前唯一一个把这条链路写进定位说明的国产模型，且限时价与 2.0 相同、双协议兼容。用赠量跑真实任务，<b>自己测出它值不值</b>，别看通稿。</p>
+      <div class="pick"><div class="bar"></div>LongCat-2.5-Preview · 小成本实测</div>
+    </div>
+    <div class="adv gr">
+      <div class="who">FOR · 生产环境 / 对外服务</div>
+      <h4>两个都先别上</h4>
+      <p>2.0 能力可验证但缺多模态；2.5 有多模态但完全不可验证，且限时价还能改两次、随时可能下线预览端点。生产链路需要一个你能复现、能兜底、能追责的模型 —— 这两者当前都不满足。</p>
+      <div class="pick"><div class="bar"></div>观望 · 等模型卡与第三方评测</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="code">
+      <div class="code-head">
+        <span class="fn">ANTHROPIC_COMPATIBLE · Claude Code 直连</span>
+        <button class="copy-btn" data-copy="c1">复制</button>
+      </div>
+      <pre id="c1"><span class="c2"># 2.5 新增 Anthropic 兼容端点，Claude Code 可直接接</span>
+<span class="k2">export</span> ANTHROPIC_BASE_URL=<span class="s2">"https://api.longcat.chat/anthropic"</span>
+<span class="k2">export</span> ANTHROPIC_AUTH_TOKEN=<span class="s2">"$LONGCAT_API_KEY"</span>
+
+<span class="c2"># 沿用原有的 Claude Code 工作流，</span>
+<span class="c2"># 多模态截图理解在长程任务中自动生效</span>
+claude</pre>
+    </div>
+    <div class="code">
+      <div class="code-head">
+        <span class="fn">OPENAI_COMPATIBLE · 含图像输入</span>
+        <button class="copy-btn" data-copy="c2">复制</button>
+      </div>
+      <pre id="c2"><span class="k2">from</span> openai <span class="k2">import</span> OpenAI
+
+client = OpenAI(
+    base_url=<span class="s2">"https://api.longcat.chat/v1"</span>,
+    api_key=os.environ[<span class="s2">"LONGCAT_API_KEY"</span>],
+)
+
+r = client.chat.completions.create(
+    model=<span class="s2">"LongCat-2.5-Preview"</span>,
+    messages=[{
+        <span class="s2">"role"</span>: <span class="s2">"user"</span>,
+        <span class="s2">"content"</span>: [
+            {<span class="s2">"type"</span>: <span class="s2">"text"</span>, <span class="s2">"text"</span>: <span class="s2">"读这张报错截图，定位原因"</span>},
+            {<span class="s2">"type"</span>: <span class="s2">"image_url"</span>,
+             <span class="s2">"image_url"</span>: {<span class="s2">"url"</span>: <span class="s2">"data:image/png;base64,..."</span>}},
+        ],
+    }],
+)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 10. 来源 ══════════ -->
+<section id="srcs" class="reveal">
+  <div class="sec-head">
+    <div class="sec-idx">10 — 信息来源与证据等级</div>
+    <h2>这页每个数字从哪来</h2>
+    <p class="sub">本页区分「厂商公布」「第三方转述」「本页推断」三类来源。凡是推断，均已在正文标注。</p>
+  </div>
+
+  <div class="srcs">
+    <div class="src">
+      <div class="sd2">美团官方 changelog / API 平台 · 2026-09-25</div>
+      <div class="st2">LongCat API 开放平台 · 版本记录与定价页</div>
+      <p style="font-size:12.5px;color:var(--dim-2);margin-top:6px">「Version: 2026-09-25 — LongCat-2.5-Preview Now Available」· $0.30 / $0.006 / $1.20（页面自标限时优惠）· 上下文 1,000,000 · 最大输出 131,072 <span class="tag v" style="margin-left:4px">官方</span></p>
+    </div>
+    <div class="src">
+      <div class="sd2">meituan-longcat · HuggingFace / GitHub · 2026-06-30</div>
+      <div class="st2">LongCat-2.0 开源仓库与技术博客</div>
+      <p style="font-size:12.5px;color:var(--dim-2);margin-top:6px">MIT 协议 · 1.6T / ~48B · LSA / Zero-Compute Experts / MOPD · 5 万+ 国产 ASIC · 35T token 预训练 <span class="tag v" style="margin-left:4px">官方</span></p>
+    </div>
+    <div class="src">
+      <div class="sd2">美团公布 / 本页整理 · 2026-06-30</div>
+      <div class="st2">LongCat-2.0 九项基准成绩（厂商自评）</div>
+      <p style="font-size:12.5px;color:var(--dim-2);margin-top:6px">Terminal-Bench 2.1 70.8 · SWE-bench Pro 59.5 · SWE-bench Multilingual 77.3 · FORTE 73.2 · BrowseComp 79.9 · RWSearch 78.8 · GPQA Diamond 88.9 · IFEval 90.0 · IMO-AnswerBench 81.8 <span class="tag c" style="margin-left:4px">厂商自评</span></p>
+    </div>
+    <div class="src">
+      <div class="sd2">OrcaRouter 独立评测对比 · 2026-09-26</div>
+      <div class="st2">2.5-Preview vs GLM-5.2 / Qwen3.8-Max / DeepSeek V4 Pro</div>
+      <p style="font-size:12.5px;color:var(--dim-2);margin-top:6px">确认无 AA 收录、无权重、无第三方评测；GLM-5.2 上下文召回 78.33、Qwen3.8-Max 智能指数 45.4 <span class="tag c" style="margin-left:4px">第三方</span></p>
+    </div>
+    <div class="src">
+      <div class="sd2">Automatica Press · 2026-09-26</div>
+      <div class="st2">「一个低调到反常的大模型发布」</div>
+      <p style="font-size:12.5px;color:var(--dim-2);margin-top:6px">核验结论：报道本身即声明「未确认」，指出 1.6T/48B/1M 这些数字应被视为「关于说法的说法」 <span class="tag q" style="margin-left:4px">存疑</span></p>
+    </div>
+    <div class="src">
+      <div class="sd2">Vercel AI Gateway 模型目录 · 2026-09-26</div>
+      <div class="st2">meituan/longcat-2.5-preview 元数据</div>
+      <p style="font-size:12.5px;color:var(--dim-2);margin-top:6px">输入模态 text + image · 输出 131,072 · 上下文 1,048,576 · 具备 reasoning 与 tool calling · 权重标记为闭源 <span class="tag c" style="margin-left:4px">第三方</span></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>数据截止</b>　2026-09-28（LongCat-2.5-Preview 发布后第 3 天）。Preview 模型与限时价格随时可能变动，请以官方平台为准。</p>
+    <p style="margin-top:8px"><b>本页立场</b>　多模态与桌面 Agent 是真实的定位升级；「没有基准、没有权重」也是真实的发布状态。二者同时成立，不应互相抵消。对厂商的未验证声明保持尊重，但不要把它当成测试结果使用。</p>
+    <p style="margin-top:14px;color:var(--dim-2)">页面为单文件静态 HTML，无外部依赖 · 视觉为冷灰数据底 + 龙猫琥珀金单一强调色</p>
+    <p style="margin-top:6px;color:var(--dim-2)"><b>素材来源</b>　页首猫头的头部轮廓引用自美团 LongCat-2.0 开源仓库 <span style="font-family:var(--mono)">figures/longcat_logo.svg</span>（MIT 协议，meituan-longcat/LongCat-2.0），仅作等比缩放与位置摆放，路径数据未作任何修改；其余图标为本页手绘 SVG。</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- 滚动揭示 ---------- */
+  var reveals = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    },{threshold:.08, rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(function(el){ io.observe(el); });
+  } else { reveals.forEach(function(el){ el.classList.add('in'); }); }
+
+  /* ---------- 导航高亮 ---------- */
+  var secs = Array.prototype.slice.call(document.querySelectorAll('section[id]'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('#navlinks a'));
+  function spy(){
+    var y = window.scrollY + 140, cur = null;
+    secs.forEach(function(s){ if(s.offsetTop <= y) cur = s.id; });
+    links.forEach(function(a){ a.classList.toggle('on', a.getAttribute('href') === '#'+cur); });
+  }
+  window.addEventListener('scroll', spy, {passive:true}); spy();
+
+  /* ---------- 数字滚动 ---------- */
+  function fmt(n, dec){
+    dec = dec||0;
+    if(n >= 1000000) return (n/1000000).toFixed(2).replace(/\.?0+$/,'') + 'M';
+    return n.toLocaleString('en-US',{minimumFractionDigits:dec, maximumFractionDigits:dec});
+  }
+  var counters = document.querySelectorAll('.cnt');
+  function runCount(el){
+    var to = parseFloat(el.dataset.to), dec = parseInt(el.dataset.dec||'0',10);
+    if(isNaN(to)) return;
+    var dur = 1200, st = null;
+    function tick(ts){
+      if(!st) st = ts;
+      var p = Math.min((ts-st)/dur, 1);
+      var e = 1 - Math.pow(1-p, 3);
+      el.textContent = fmt(to*e, dec);
+      if(p < 1) requestAnimationFrame(tick); else el.textContent = fmt(to, dec);
+    }
+    requestAnimationFrame(tick);
+  }
+  if('IntersectionObserver' in window && counters.length){
+    var co = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ runCount(e.target); co.unobserve(e.target); } });
+    },{threshold:.5});
+    counters.forEach(function(el){ co.observe(el); });
+  } else { counters.forEach(runCount); }
+
+  /* ---------- 进度条 ---------- */
+  var fills = document.querySelectorAll('.fill[data-w]');
+  function fillBar(el){ el.style.width = el.dataset.w + '%'; }
+  if('IntersectionObserver' in window && fills.length){
+    var fo = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ fillBar(e.target); fo.unobserve(e.target); } });
+    },{threshold:.4});
+    fills.forEach(function(el){ fo.observe(el); });
+  } else { fills.forEach(fillBar); }
+
+  /* ---------- Tabs ---------- */
+  document.querySelectorAll('.tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('on'); });
+      document.querySelectorAll('.tabpane').forEach(function(p){ p.classList.remove('on'); });
+      btn.classList.add('on');
+      var pane = document.getElementById(btn.dataset.pane);
+      if(pane){
+        pane.classList.add('on');
+        pane.querySelectorAll('.fill[data-w]').forEach(function(el){
+          el.style.width = '0'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ fillBar(el); }); });
+        });
+      }
+    });
+  });
+
+  /* ---------- 雷达图 ---------- */
+  (function(){
+    var svg = document.getElementById('radarChart');
+    if(!svg) return;
+    var NS = 'http://www.w3.org/2000/svg';
+    var labels = ['编码 / 工具使用','长上下文','视觉 · 多模态','长程 Agent','Agent 生态适配','可验证性'];
+    var v20 = [72, 82, 6, 66, 62, 74];
+    var v25 = [78, 80, 70, 80, 84, 14];
+    var cx = 210, cy = 200, R = 128, N = labels.length, rot = -Math.PI/2;
+
+    function pt(i, val){
+      var a = rot + i*2*Math.PI/N, r = R * (val/100);
+      return [cx + Math.cos(a)*r, cy + Math.sin(a)*r];
+    }
+    function el(name, attrs){
+      var n = document.createElementNS(NS, name);
+      for(var k in attrs) n.setAttribute(k, attrs[k]);
+      return n;
+    }
+    function poly(vals){
+      return vals.map(function(v,i){ return pt(i,v).map(function(n){ return n.toFixed(1); }).join(','); }).join(' ');
+    }
+
+    [25,50,75,100].forEach(function(level){
+      var ring = [];
+      for(var i=0;i<N;i++){ var a = rot+i*2*Math.PI/N; ring.push((cx+Math.cos(a)*R*level/100).toFixed(1)+','+(cy+Math.sin(a)*R*level/100).toFixed(1)); }
+      svg.appendChild(el('polygon',{points:ring.join(' '),fill:'none',stroke:'#242a33','stroke-width':1}));
+    });
+    for(var i=0;i<N;i++){
+      var a = rot+i*2*Math.PI/N;
+      svg.appendChild(el('line',{x1:cx,y1:cy,x2:cx+Math.cos(a)*R,y2:cy+Math.sin(a)*R,stroke:'#1e242c','stroke-width':1}));
+    }
+
+    var area20 = el('polygon',{points:poly(v20),fill:'rgba(138,148,163,.16)',stroke:'#8a94a3','stroke-width':2,'stroke-linejoin':'round'});
+    var area25 = el('polygon',{points:poly(v25),fill:'rgba(240,180,41,.15)',stroke:'#f0b429','stroke-width':2,'stroke-linejoin':'round'});
+    svg.appendChild(area20); svg.appendChild(area25);
+
+    [[area20,v20,'#8a94a3'],[area25,v25,'#f0b429']].forEach(function(pair){
+      pair[1].forEach(function(v,i){
+        var p = pt(i,v);
+        var c = el('circle',{cx:p[0].toFixed(1), cy:p[1].toFixed(1), r:3.4, fill:pair[2]});
+        c.style.opacity = '0';
+        svg.appendChild(c);
+      });
+    });
+
+    labels.forEach(function(lab,i){
+      var a = rot+i*2*Math.PI/N, lx = cx+Math.cos(a)*(R+34), ly = cy+Math.sin(a)*(R+26);
+      var anchor = Math.abs(lx-cx) < 12 ? 'middle' : (lx > cx ? 'start' : 'end');
+      var t = el('text',{x:lx.toFixed(1), y:ly.toFixed(1), fill:'#8a94a3','font-size':'12','font-family':'Inter, PingFang SC, sans-serif','text-anchor':anchor,'dominant-baseline':'middle'});
+      t.textContent = lab;
+      svg.appendChild(t);
+    });
+
+    svg.style.opacity = '0'; svg.style.transform = 'scale(.94)';
+    svg.style.transition = 'opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1)';
+    if('IntersectionObserver' in window){
+      var ro = new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if(!e.isIntersecting) return;
+          ro.unobserve(e.target);
+          e.target.style.opacity = '1'; e.target.style.transform = 'scale(1)';
+          svg.querySelectorAll('circle').forEach(function(c,i){
+            setTimeout(function(){ c.style.transition='opacity .3s'; c.style.opacity='1'; }, 250 + i*38);
+          });
+        });
+      },{threshold:.3});
+      ro.observe(svg);
+    } else { svg.style.opacity='1'; svg.style.transform='none'; }
+  })();
+
+  /* ---------- Agent 链路演示 ---------- */
+  (function(){
+    var CAPTIONS = [
+      {cap:'ticket.read',      right:'text only'},
+      {cap:'screenshot.read', right:'needs vision'},
+      {cap:'sheet.verify',    right:'text or vision'},
+      {cap:'design.diff',     right:'needs vision'}
+    ];
+    var STATES = [
+      {st:'ok',      key:'2.0 ✓　2.5 ✓', html:'第 1 步：读工单需求 —— 纯文本输入，两代模型都能做。<b>这一步没有差异</b>，但它决定了后面三步能不能成立。'},
+      {st:'no',      key:'2.0 ✕　2.5 ✓', html:'第 2 步：读后台报错截图 —— 这是 2.5 的核心增量。<b style="color:var(--bad)">2.0 拿不到截图内容</b>，只能靠人把报错粘成文字；2.5 直接读图，长程 Agent 才第一次能自主诊断 UI 层问题。'},
+      {st:'partial', key:'2.0 ~　2.5 ✓', html:'第 3 步：核对表格 —— 2.0 能处理表格里<b>已经变成文本</b>的内容，但要有人先把 Excel 导出成 CSV；2.5 直接读屏幕上的表格视图，少一道人工中转。'},
+      {st:'no',      key:'2.0 ✕　2.5 ✓', html:'第 4 步：照设计稿改样式 —— 像素级对稿必须读图。<b style="color:var(--bad)">2.0 做不到</b>；2.5 把「设计工具」写进定位，说明它要接的不只是 IDE，而是整条前端工作流。'}
+    ];
+    var screen  = document.getElementById('simscreen');
+    var cap     = document.getElementById('simcap');
+    var capR    = document.getElementById('simcapr');
+    var out     = document.getElementById('simout');
+    var scenes  = Array.prototype.slice.call(document.querySelectorAll('.sim-scene'));
+    var btns    = Array.prototype.slice.call(document.querySelectorAll('#simsteps .step'));
+    if(!screen || !scenes.length) return;
+
+    function apply(i){
+      btns.forEach(function(b,k){ b.classList.toggle('on', k===i); });
+      scenes.forEach(function(sc,k){ sc.classList.toggle('on', k===i); });
+      screen.classList.toggle('lit', STATES[i].st === 'ok');
+      screen.classList.toggle('partial', STATES[i].st === 'partial');
+      screen.classList.toggle('locked', STATES[i].st === 'no');
+      cap.textContent  = CAPTIONS[i].cap;
+      capR.textContent = CAPTIONS[i].right;
+      out.classList.remove('idle');
+      out.innerHTML = '<span class="k">' + STATES[i].key + '</span>' + STATES[i].html;
+    }
+    btns.forEach(function(b,i){
+      b.addEventListener('click', function(){ apply(i); });
+      b.addEventListener('mouseenter', function(){ apply(i); });
+      b.addEventListener('focus', function(){ apply(i); });
+    });
+    apply(0);
+  })();
+
+  /* ---------- 成本计算器 ---------- */
+  (function(){
+    var s1=document.getElementById('s1'), s2=document.getElementById('s2'), s3=document.getElementById('s3');
+    if(!s1) return;
+    var PIN=0.30, POUT=1.20, PCACHE=0.006, FREE=5e6;
+
+    function money(x){ return x >= 100 ? '$'+x.toFixed(0) : (x >= 1 ? '$'+x.toFixed(2) : '$'+x.toFixed(4)); }
+    function compact(n){
+      if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+      if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+      if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+      return String(Math.round(n));
+    }
+    function calc(){
+      var i = +s1.value, o = +s2.value, t = +s3.value;
+      document.getElementById('v1').textContent = i.toLocaleString('en-US');
+      document.getElementById('v2').textContent = o.toLocaleString('en-US');
+      document.getElementById('v3').textContent = t.toLocaleString('en-US');
+
+      var tin = i*t, tout = o*t;
+      var full = tin/1e6*PIN + tout/1e6*POUT;
+      var cached = (tin*0.3)/1e6*PIN + (tin*0.7)/1e6*PCACHE + tout/1e6*POUT;
+      var cover = Math.floor(FREE/(i+o));
+
+      document.getElementById('o-in').textContent    = compact(tin);
+      document.getElementById('o-out').textContent   = compact(tout);
+      document.getElementById('o-full').textContent  = money(full);
+      document.getElementById('o-cache').textContent = money(cached);
+      document.getElementById('o-free').textContent  = cover.toLocaleString('en-US') + ' 次任务';
+      document.getElementById('o-year').textContent = money(cached*12);
+    }
+    [s1,s2,s3].forEach(function(s){ s.addEventListener('input', calc); });
+    calc();
+  })();
+
+  /* ---------- 复制 ---------- */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var src = document.getElementById(btn.dataset.copy);
+      if(!src) return;
+      var txt = src.innerText;
+      var done = function(){
+        btn.textContent = '已复制'; btn.classList.add('done');
+        setTimeout(function(){ btn.textContent='复制'; btn.classList.remove('done'); }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done, done);
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta); done();
+      }
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
